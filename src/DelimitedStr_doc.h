@@ -24,3 +24,10 @@
 #define DELIMITEDSTR_SPLIT_DOC \
 	"split(string)\n--\n\n"
 
+#define DELIMITEDSTR_GET_DOC \
+	"get(index)\n--\n\n" \
+	"   get the delimiters at index and write them to a list.\n"
+
+#define DELIMITEDSTR_LEN_DOC \
+	"len()\n--\n\n" \
+	"   get the number of delimiters stored.\n"

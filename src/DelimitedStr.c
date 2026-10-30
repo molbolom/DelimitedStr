@@ -82,6 +82,12 @@ static PyObject *DelimitedStr_remove_delimiter(PyObject *self, PyObject *pos)
 	Py_RETURN_NONE;
 }
 
+/*
+ *	write_delimiter(index, head, tail, flags)
+ *
+ *	Sets the delimiter, head/tail, at index with flags.
+ *
+ */
 static int write_delimiter(int x, const char *head, const char *tail, int flags)
 {
 
@@ -117,6 +123,42 @@ static int write_delimiter(int x, const char *head, const char *tail, int flags)
 		delms.item[x].flags = flags;
 
 	return(REDELIMLIST_OK);
+}
+
+
+static PyObject *DelimitedStr_len(PyObject *self, PyObject *a)
+{
+		return(PyLong_FromLong(delms.len));
+}
+
+/*
+ *	get(index)  will return a list of the delimiter with the flags
+ *				at index.
+ *
+ *
+ */
+
+static PyObject *DelimitedStr_get(PyObject *self, PyObject *a)
+{
+	if (!PyLong_Check(a) || PyBool_Check(a)) {
+		PyErr_SetString(PyExc_OverflowError, "Requires an integer.");
+		return(NULL);
+	}
+
+	long x = PyLong_AsLong(a);
+	if ((x == -1) && PyErr_Occurred())
+		return(NULL);
+	if ((x<0) || (x >= delms.len)) {
+		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
+		return(NULL);
+	}
+
+	if (delms.item[x].head == NULL)
+		Py_RETURN_NONE;
+
+	return(Py_BuildValue("[ssi]", delms.item[x].head, delms.item[x].tail,
+						delms.item[x].flags & 0xff));
+
 }
 
 static PyObject *DelimitedStr_set_delimiter(PyObject *self, PyObject *args) {
@@ -383,6 +425,8 @@ void clean_str2list(void)
 static PyMethodDef DelimitedStr_methods[] = {
 	{"add_delimiter", DelimitedStr_add_delimiter, METH_VARARGS, DELIMITEDSTR_ADD_DELIMITER_DOC},
 	{"set_delimiter", DelimitedStr_set_delimiter, METH_VARARGS, DELIMITEDSTR_SET_DELIMITER_DOC},
+	{"get",           DelimitedStr_get, METH_O, DELIMITEDSTR_GET_DOC},
+	{"len",           DelimitedStr_len, METH_NOARGS, DELIMITEDSTR_LEN_DOC},
 	{"remove_delimiter", DelimitedStr_remove_delimiter, METH_O, DELIMITEDSTR_REMOVE_DELIMITER_DOC},
 	{"split", DelimitedStr_split, METH_O, DELIMITEDSTR_SPLIT_DOC},
 	{ NULL, NULL, 0, NULL }
