@@ -23,6 +23,16 @@ typedef struct {
 	struct STRING_DELIMITERS delms;
 } DelimitedStrObject;
 
+/*	resize_delimiters(delimiter list, additional length)
+ *
+ *	This function resizes the delimiter list so new delimiters can be added to it.
+ *
+ *	The reason for this is since some delimiters need to precede other delimiters
+ *	a person would be able to insert a delimiter or move a delimiter to another location.
+ *	Thus holes would be preserved.
+ *
+ */
+
 static int resize_delimiters(struct STRING_DELIMITERS *delms, int l)
 {
 	if (l <= 0)
@@ -176,6 +186,9 @@ static PyObject *DelimitedStr_get(PyObject *self, PyObject *a)
  *
  *  Sets the delimiter with flags at index.
  *
+ *  Since some delimiters need to precede other delimiters, this can be 
+ *  used to ensure those delimiters are in their correct position.
+ *
  */
 
 static PyObject *DelimitedStr_set_delimiter(PyObject *self, PyObject *args) {
@@ -205,8 +218,6 @@ static PyObject *DelimitedStr_set_delimiter(PyObject *self, PyObject *args) {
 /*	add_delimiter(head, tail, flags)
  *
  *	Searches for the first empty spot and adds the delimiter to it.
- *
- *
  *
  */
 
@@ -238,6 +249,12 @@ static PyObject *DelimitedStr_add_delimiter(PyObject *self, PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+/*
+ *	resize_tmplist(additional length)  This is not used outside of the 
+ *			c library. All this routine does is lengthens the temporary
+ *			list for storing strings before writing to the list.
+ */
+
 static int resize_tmplist(int l)
 {
 
@@ -264,6 +281,13 @@ static int resize_tmplist(int l)
 	return(RETEMPLIST_OK);
 }
 
+/*
+ *	DelimitedStr_split(self, string)   The python usage of str2list.
+ *
+ *	This calls str2list and copies the list stored in tmplist to a
+ *	python list. 
+ *
+ */
 
 static PyObject *DelimitedStr_split(PyObject *self, PyObject *str)
 {
@@ -295,18 +319,25 @@ static PyObject *DelimitedStr_split(PyObject *self, PyObject *str)
 
 }
 
+/*
+ * The main split function separate from the python code.
+ *
+ *
+ *	str2list(delimited list, string)
+ */
+
 static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 {
 
-	if (*str == 0) {
+	if (*str == 0) {		// Was an empty string passed.
 		tmplist.c = 0;
 		return;
 	}
 
-	if (tmplist.len == 0)
+	if (tmplist.len == 0)	// If tmplist has not been initialized.
 		return;
 
-	tmplist.c = 0;
+	tmplist.c = 0;			// Initialize necessary variables.
 
 	const char *head = NULL;
 	const char *tail = NULL;
@@ -315,7 +346,7 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 
 	while (*str != 0)
 	{
-		if (head == NULL)
+		if (head == NULL)			// Trim white spaces if we're not reading a string.
 		{
 			if (*str == 0x20)
 			{
@@ -327,16 +358,16 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 
 		for (x=0;x<delms->len;x++)
 		{
-			if (delms->item[x].head == NULL)			
+			if (delms->item[x].head == NULL)				// if this is a hole, skip.
 				continue;
-			if (*str != delms->item[x].head[0])
+			if (*str != delms->item[x].head[0])				// If the first characters match, continue.
 				continue;
-			if (strncmp(str, delms->item[x].head, delms->item[x].headlen) == 0)
+			if (strncmp(str, delms->item[x].head, delms->item[x].headlen) == 0)		//head is found.
 			{
 				tail = strstr(str+delms->item[x].headlen, delms->item[x].tail);
 				if (tail != NULL)
 				{
-					if (CAN_NEST(delms->item[x].flags)) {
+					if (CAN_NEST(delms->item[x].flags)) {			//If delimiters can nest.
 						const char *nesthead = str;
 						const char *nesttail = tail;
 						while (1) {
@@ -362,12 +393,13 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 						}
 					}
 
-					if (head + delms->item[x].headlen == tail) {
+					if (head + delms->item[x].headlen == tail) {	// If empty string in delimiter.
 						str = tail + delms->item[x].taillen;
 						tail = head;
 						break;
 					}
-					if (HAS_DELIMITER_WITH_STRING(delms->item[x].flags)) {
+					if (HAS_DELIMITER_WITH_STRING(delms->item[x].flags)) {	// Delimiter can be read
+																			// with string.
 						if (head < str) {
 							tail = tail + delms->item[x].taillen;
 							str = tail;
@@ -378,16 +410,16 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 						break;
 					}
 
-					if (head < str) {
+					if (head < str) {										   // Reading a normal string.
 						tail =str;
-					} else if (HAS_DISCARD_DELIMITERS(delms->item[x].flags)) {
+					} else if (HAS_DISCARD_DELIMITERS(delms->item[x].flags)) { // Reading a discarded delimited string.
 						head = head + delms->item[x].headlen;
 						str = tail + delms->item[x].taillen;
-					} else if (HAS_DISCARD_STRING(delms->item[x].flags)) {
+					} else if (HAS_DISCARD_STRING(delms->item[x].flags)) {     // Reading a comment block.
 						str = tail + delms->item[x].taillen;
 						head = NULL;
 						tail = NULL;
-					} else if (HAS_KEEP_DELIMITERS(delms->item[x].flags)) {											// Keep delims. 
+					} else if (HAS_KEEP_DELIMITERS(delms->item[x].flags)) {	   // Keep delims. 
 						tail = tail + delms->item[x].taillen;
 						str = tail;
 					}
@@ -398,7 +430,7 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 			}
 		}
 
-		if (tail == head) {
+		if (tail == head) {						//if tail == head, ignore last read.
 			head = NULL;
 			tail = NULL;
 			continue;
@@ -435,11 +467,16 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 
 }
 
+/*	The python deallocation routine. 
+ *
+ *	This is where any memory allocations performed within this library
+ *	are freed on python exit. 
+ *
+ */
+
 static void DelimitedStr_dealloc(DelimitedStrObject *self)
 {
-
 	int x;
-
 	struct STRING_DELIMITERS *delms = &self->delms;
 	for (x=0;x<delms->len;x++)
 		free(delms->item[x].head);
@@ -511,7 +548,12 @@ PyMODINIT_FUNC PyInit_delimitedstr(void)
 	}
 	resize_tmplist(15);
 
-	if (Py_AtExit(clean_str2list) < 0 )
+/*	tmplist is freed at exit because it is used across instances
+ *  and freeing it at any other time would break the program.
+ *
+ *
+ */
+	if (Py_AtExit(clean_str2list) < 0 )		
 		clean_str2list();
 	
 	return(m);
