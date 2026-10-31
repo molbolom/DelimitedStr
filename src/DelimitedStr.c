@@ -467,10 +467,9 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 
 }
 
-/*	The python deallocation routine. 
+/*	The python instance deallocation routine. 
  *
- *	This is where any memory allocations performed within this library
- *	are freed on python exit. 
+ * 	This is where the instance only values are deconstructed. 
  *
  */
 
