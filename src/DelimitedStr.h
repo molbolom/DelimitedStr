@@ -52,6 +52,6 @@ struct TEMP_LIST {
 };
 
 
-void str2list(const char *);
+static void str2list(struct STRING_DELIMITERS *, const char *);
 
-void clean_str2list(void);
+static void clean_str2list(void);

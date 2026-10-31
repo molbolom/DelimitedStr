@@ -21,19 +21,20 @@ struct TEMP_LIST tmplist = { 0, 0, NULL };
 
 typedef struct {
 	PyObject_HEAD
+	struct STRING_DELIMITERS delms;
 } DelimitedStrObject;
 
-static int resize_delimiters(int l)
+static int resize_delimiters(struct STRING_DELIMITERS *delms, int l)
 {
 	if (l <= 0)
 		return(REDELIMLIST_ERROR_LENGTH);
 
-	int i = delms.len;
-		l = delms.len + l;
+	int i = delms->len;
+		l = delms->len + l;
 
 	struct DELIMITERS *newdelms = NULL;
 
-	newdelms = realloc(delms.item, sizeof(struct DELIMITERS)*l);
+	newdelms = realloc(delms->item, sizeof(struct DELIMITERS)*l);
 
 	if (newdelms == NULL)
 		return(REDELIMLIST_ERROR_ALLOC);
@@ -46,8 +47,8 @@ static int resize_delimiters(int l)
 		newdelms[x].flags   = 0;
 	}
 
-	delms.len = l;
-	delms.item = newdelms;
+	delms->len = l;
+	delms->item = newdelms;
 	
 	return(REDELIMLIST_OK);
 }
@@ -62,6 +63,7 @@ static int resize_delimiters(int l)
 static PyObject *DelimitedStr_remove_delimiter(PyObject *self, PyObject *pos)
 {
 
+	struct STRING_DELIMITERS *delms = &((DelimitedStrObject *)self)->delms;
 	if (!PyLong_Check(pos) || PyBool_Check(pos)) {
 		PyErr_SetString(PyExc_TypeError, "remove_delimiter() requires an integer.");
 		return(NULL);
@@ -70,14 +72,14 @@ static PyObject *DelimitedStr_remove_delimiter(PyObject *self, PyObject *pos)
 	if ( (x == -1) && (PyErr_Occurred()) )
 		return(NULL);
 
-	if ( (x < 0) || (x >=delms.len) ) {
+	if ( (x < 0) || (x >=delms->len) ) {
 		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
 		return(NULL);
 	}
 
-	free(delms.item[x].head);
-	delms.item[x].head = NULL;
-	delms.item[x].tail = NULL;
+	free(delms->item[x].head);
+	delms->item[x].head = NULL;
+	delms->item[x].tail = NULL;
 
 	Py_RETURN_NONE;
 }
@@ -87,15 +89,17 @@ static PyObject *DelimitedStr_remove_delimiter(PyObject *self, PyObject *pos)
  *
  *	Sets the delimiter, head/tail, at index with flags.
  *
+ *	Not accessable through python.
+ *
  */
-static int write_delimiter(int x, const char *head, const char *tail, int flags)
+static int write_delimiter(struct STRING_DELIMITERS *delms, int x, const char *head, const char *tail, int flags)
 {
 
-	if ((x > delms.len) || (x< 0)) 
+	if ((x > delms->len) || (x< 0)) 
 		return(REDELIMLIST_ERROR_LENGTH);
 
-	if (x == delms.len)
-		if ( resize_delimiters(5) != REDELIMLIST_OK) 
+	if (x == delms->len)
+		if ( resize_delimiters(delms, 8) != REDELIMLIST_OK) 
 			return(REDELIMLIST_ERROR_ALLOC);
 
 	int headlen = strlen(head);
@@ -106,29 +110,35 @@ static int write_delimiter(int x, const char *head, const char *tail, int flags)
 	if (newstr == NULL) 
 		return(REDELIMLIST_ERROR_ALLOC);
 
-	if (delms.item[x].head != NULL)
-		free(delms.item[x].head);
+	if (delms->item[x].head != NULL)
+		free(delms->item[x].head);
 
 	memcpy(newstr, head, headlen+1);
 	memcpy(newstr+headlen+1, tail, taillen+1);
 
-	delms.item[x].head = newstr;
-	delms.item[x].headlen = headlen;
-	delms.item[x].tail = delms.item[x].head+delms.item[x].headlen+1;
-	delms.item[x].taillen = taillen;
+	delms->item[x].head = newstr;
+	delms->item[x].headlen = headlen;
+	delms->item[x].tail = delms->item[x].head+delms->item[x].headlen+1;
+	delms->item[x].taillen = taillen;
 	
-	if (strncmp(delms.item[x].head, delms.item[x].tail, delms.item[x].headlen) == 0)
-		delms.item[x].flags = DELIMITER_NO_NEST | flags;
+	if (strncmp(delms->item[x].head, delms->item[x].tail, delms->item[x].headlen) == 0)
+		delms->item[x].flags = DELIMITER_NO_NEST | flags;
 	else
-		delms.item[x].flags = flags;
+		delms->item[x].flags = flags;
 
 	return(REDELIMLIST_OK);
 }
 
+/*
+ *	DelimitedStr_len()  Return the length of the delimiter array.
+ *
+ *
+ */
 
 static PyObject *DelimitedStr_len(PyObject *self, PyObject *a)
 {
-		return(PyLong_FromLong(delms.len));
+	struct STRING_DELIMITERS *delms = &((DelimitedStrObject *)self)->delms;
+	return(PyLong_FromLong(delms->len));
 }
 
 /*
@@ -140,6 +150,7 @@ static PyObject *DelimitedStr_len(PyObject *self, PyObject *a)
 
 static PyObject *DelimitedStr_get(PyObject *self, PyObject *a)
 {
+	struct STRING_DELIMITERS *delms = &((DelimitedStrObject *)self)->delms;
 	if (!PyLong_Check(a) || PyBool_Check(a)) {
 		PyErr_SetString(PyExc_OverflowError, "Requires an integer.");
 		return(NULL);
@@ -148,18 +159,25 @@ static PyObject *DelimitedStr_get(PyObject *self, PyObject *a)
 	long x = PyLong_AsLong(a);
 	if ((x == -1) && PyErr_Occurred())
 		return(NULL);
-	if ((x<0) || (x >= delms.len)) {
+	if ((x<0) || (x >= delms->len)) {
 		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
 		return(NULL);
 	}
 
-	if (delms.item[x].head == NULL)
+	if (delms->item[x].head == NULL)
 		Py_RETURN_NONE;
 
-	return(Py_BuildValue("[ssi]", delms.item[x].head, delms.item[x].tail,
-						delms.item[x].flags & 0xff));
+	return(Py_BuildValue("[ssi]", delms->item[x].head, delms->item[x].tail,
+						delms->item[x].flags & 0xff));
 
 }
+
+/*
+ *	set_delimiter(index head, tail, flags)
+ *
+ *  Sets the delimiter with flags at index.
+ *
+ */
 
 static PyObject *DelimitedStr_set_delimiter(PyObject *self, PyObject *args) {
 
@@ -168,11 +186,12 @@ static PyObject *DelimitedStr_set_delimiter(PyObject *self, PyObject *args) {
 	const char *head;
 	const char *tail;
 
+	struct STRING_DELIMITERS *delms = &((DelimitedStrObject *)self)->delms;
 	if (!PyArg_ParseTuple(args, "iss|i", &x, &head, &tail, &flags)) {
 		return(NULL);
 	}
 
-	x = write_delimiter(x, head, tail, flags);
+	x = write_delimiter(delms, x, head, tail, flags);
 
 	if (x & REDELIMLIST_ERROR_LENGTH) {
 		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
@@ -183,6 +202,14 @@ static PyObject *DelimitedStr_set_delimiter(PyObject *self, PyObject *args) {
 
 	Py_RETURN_NONE;
 }
+
+/*	add_delimiter(head, tail, flags)
+ *
+ *	Searches for the first empty spot and adds the delimiter to it.
+ *
+ *
+ *
+ */
 
 static PyObject *DelimitedStr_add_delimiter(PyObject *self, PyObject *args) {
 
@@ -195,11 +222,12 @@ static PyObject *DelimitedStr_add_delimiter(PyObject *self, PyObject *args) {
 		return(NULL);
 	}
 
-	for(x=0;x<delms.len;x++)
-		if (delms.item[x].head == NULL) break;
+	struct STRING_DELIMITERS *delms = &((DelimitedStrObject *)self)->delms;
+	for(x=0;x<delms->len;x++)
+		if (delms->item[x].head == NULL) break;
 
 	
-	x = write_delimiter(x, head, tail, flags);
+	x = write_delimiter(delms, x, head, tail, flags);
 
 	if (x & REDELIMLIST_ERROR_LENGTH) {
 		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
@@ -246,11 +274,12 @@ static PyObject *DelimitedStr_split(PyObject *self, PyObject *str)
 		return(NULL);
 	}
 
+	struct STRING_DELIMITERS *delms = &((DelimitedStrObject *)self)->delms;
 	const char *s = PyUnicode_AsUTF8(str);
 	if (s == NULL)
 		return(NULL);
 
-	str2list(s);
+	str2list(delms, s);
 
 	PyObject *newlist = PyList_New(tmplist.c);
 
@@ -267,7 +296,7 @@ static PyObject *DelimitedStr_split(PyObject *self, PyObject *str)
 
 }
 
-void str2list(const char *str)
+static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 {
 
 	if (*str == 0) {
@@ -297,20 +326,20 @@ void str2list(const char *str)
 			head = str;				// Start reading the string.
 		}
 
-		for (x=0;x<delms.len;x++)
+		for (x=0;x<delms->len;x++)
 		{
-			if (delms.item[x].head == NULL)			
+			if (delms->item[x].head == NULL)			
 				continue;
-			if (strncmp(str, delms.item[x].head, delms.item[x].headlen) == 0)
+			if (strncmp(str, delms->item[x].head, delms->item[x].headlen) == 0)
 			{
-				tail = strstr(str+delms.item[x].headlen, delms.item[x].tail);
+				tail = strstr(str+delms->item[x].headlen, delms->item[x].tail);
 				if (tail != NULL)
 				{
-					if (CAN_NEST(delms.item[x].flags)) {
+					if (CAN_NEST(delms->item[x].flags)) {
 						const char *nesthead = str;
 						const char *nesttail = tail;
 						while (1) {
-							nesthead = strstr(nesthead+delms.item[x].headlen, delms.item[x].head);
+							nesthead = strstr(nesthead+delms->item[x].headlen, delms->item[x].head);
 							if (nesthead == NULL) {
 								tail = nesttail;
 								break;
@@ -318,7 +347,7 @@ void str2list(const char *str)
 								tail = nesttail;
 								break;	
 							} else {
-								nesttail = strstr(nesttail+delms.item[x].taillen, delms.item[x].tail);
+								nesttail = strstr(nesttail+delms->item[x].taillen, delms->item[x].tail);
 								if (nesttail == NULL) {
 									if (nesthead != nesttail) {
 										tail = nesthead;
@@ -332,14 +361,14 @@ void str2list(const char *str)
 						}
 					}
 
-					if (head + delms.item[x].headlen == tail) {
-						str = tail + delms.item[x].taillen;
+					if (head + delms->item[x].headlen == tail) {
+						str = tail + delms->item[x].taillen;
 						tail = head;
 						break;
 					}
-					if (HAS_DELIMITER_WITH_STRING(delms.item[x].flags)) {
+					if (HAS_DELIMITER_WITH_STRING(delms->item[x].flags)) {
 						if (head < str) {
-							tail = tail + delms.item[x].taillen;
+							tail = tail + delms->item[x].taillen;
 							str = tail;
 						} else {
 							tail = NULL;
@@ -350,15 +379,15 @@ void str2list(const char *str)
 
 					if (head < str) {
 						tail =str;
-					} else if (HAS_DISCARD_DELIMITERS(delms.item[x].flags)) {
-						head = head + delms.item[x].headlen;
-						str = tail + delms.item[x].taillen;
-					} else if (HAS_DISCARD_STRING(delms.item[x].flags)) {
-						str = tail + delms.item[x].taillen;
+					} else if (HAS_DISCARD_DELIMITERS(delms->item[x].flags)) {
+						head = head + delms->item[x].headlen;
+						str = tail + delms->item[x].taillen;
+					} else if (HAS_DISCARD_STRING(delms->item[x].flags)) {
+						str = tail + delms->item[x].taillen;
 						head = NULL;
 						tail = NULL;
-					} else if (HAS_KEEP_DELIMITERS(delms.item[x].flags)) {											// Keep delims. 
-						tail = tail + delms.item[x].taillen;
+					} else if (HAS_KEEP_DELIMITERS(delms->item[x].flags)) {											// Keep delims. 
+						tail = tail + delms->item[x].taillen;
 						str = tail;
 					}
 
@@ -387,7 +416,7 @@ void str2list(const char *str)
 
 			if (tmplist.c >= tmplist.len)
 			{
-				int resize = resize_tmplist(5);
+				int resize = resize_tmplist(8);
 				if (resize != 0) {
 					tmplist.c = 0;
 					return;
@@ -405,16 +434,22 @@ void str2list(const char *str)
 
 }
 
-void clean_str2list(void)
+static void DelimitedStr_dealloc(DelimitedStrObject *self)
 {
+
 	int x;
 
-	for (x=0;x<delms.len;x++)
-		free(delms.item[x].head);
+	struct STRING_DELIMITERS *delms = &self->delms;
+	for (x=0;x<delms->len;x++)
+		free(delms->item[x].head);
 
-	free(delms.item);
-	delms.item = NULL;
-	delms.len = 0;
+	free(delms->item);
+	
+	Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+static void clean_str2list(void)
+{
 
 	free(tmplist.item);
 	tmplist.item = NULL;
@@ -440,6 +475,7 @@ static PyTypeObject DelimitedStrType = {
 	.tp_doc         = DELIMITEDSTR_MODULE_DOC,
 	.tp_new         = PyType_GenericNew,
 	.tp_methods     = DelimitedStr_methods,
+	.tp_dealloc     = (destructor)DelimitedStr_dealloc,
 };
 
 
@@ -473,7 +509,6 @@ PyMODINIT_FUNC PyInit_delimitedstr(void)
 		return(NULL);
 	}
 	resize_tmplist(15);
-	resize_delimiters(15);
 
 	if (Py_AtExit(clean_str2list) < 0 )
 		clean_str2list();
