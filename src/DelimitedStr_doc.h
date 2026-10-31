@@ -3,21 +3,19 @@
 
 #define DELIMITEDSTR_MODULE_DOC \
 	"Parse strings into lists by head/tail delimited pairs.\n\n" \
-	"   Each instance owns its own delimiters. So a programmer can use\n" \
-	"   different methods of parsing strings depending on different\n" \
-	"   rules.\n" \
-	"Constants:\n" \
-	"                         Import with from delimterstr import KEEP_DELIMITERS, ...\n"\
-	"   KEEP_DELIMITERS       The string keeps the delimiters with it.\n" \
-	"                         Default is 0.\n" \
-	"   DISCARD_DELIMITERS    The delimiters are not kept with the string.\n" \
-	"   DISCARD_STRING        Everything between the delimiters and including\n" \
-	"                         the delimiters is ignored.\n" \
-	"   DELIMITER_WITH_STRING Will return a delimiter if it exists with a string.\n"
+	"      Each instance owns its own delimiters. So a programmer can use\n" \
+	"      different methods of parsing strings depending on different\n" \
+	"      rules.\n\n" \
+	"      Import with: from delimterstr import KEEP_DELIMITERS, ...\n\n"\
+	"               DelimitedStr.add_delimiter('[',']',DELIMITER_WITH_STRING)\n" \
+	"               DelimitedStr.add_delimiter('[',']',DISCARD_DELIMITERS)\n\n" \
+	"                  If DELIMTIER_WITH_STRING precedes DISCARD_DELIMITERS\n" \
+	"               then both can be used so that they both will split differently\n" \
+	"               'abc[def] abc [def]' will become [ 'abc[def]', 'abc', 'def' ]\n"
 
 #define DELIMITEDSTR_CLASS_DOC \
 	"The class stores and utilizes the delimiters for splitting strings into\n" \
-	"a list."
+	"a list.\n" 
 
 #define DELIMITEDSTR_ADD_DELIMITER_DOC \
 	"add_delimiter(head, tail, flags = 0)\n--\n\n" \
