@@ -16,7 +16,6 @@
 //				delms will be owned by the instance.
 //				tmplist will be across all instances.
 
-struct STRING_DELIMITERS delms = { 0, NULL };
 struct TEMP_LIST tmplist = { 0, 0, NULL };
 
 typedef struct {
@@ -330,6 +329,8 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 		{
 			if (delms->item[x].head == NULL)			
 				continue;
+			if (*str != delms->item[x].head[0])
+				continue;
 			if (strncmp(str, delms->item[x].head, delms->item[x].headlen) == 0)
 			{
 				tail = strstr(str+delms->item[x].headlen, delms->item[x].tail);
@@ -472,7 +473,7 @@ static PyTypeObject DelimitedStrType = {
 	.tp_name        = "delimitedstr.DelimitedStr",
 	.tp_basicsize   = sizeof(DelimitedStrObject),
 	.tp_flags       = Py_TPFLAGS_DEFAULT,
-	.tp_doc         = DELIMITEDSTR_MODULE_DOC,
+	.tp_doc         = DELIMITEDSTR_CLASS_DOC,
 	.tp_new         = PyType_GenericNew,
 	.tp_methods     = DelimitedStr_methods,
 	.tp_dealloc     = (destructor)DelimitedStr_dealloc,
@@ -482,7 +483,7 @@ static PyTypeObject DelimitedStrType = {
 static struct PyModuleDef delimitedstr_module = {
 	PyModuleDef_HEAD_INIT,
 	"delimitedstr",
-	"Parse strings with delimiters.",
+	DELIMITEDSTR_MODULE_DOC,
 	-1,
 	NULL
 };
