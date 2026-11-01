@@ -333,18 +333,13 @@ static PyObject *DelimitedStr_split(PyObject *self, PyObject *str)
  *	str2list(delimited list, string)
  */
 
-static void str2list(struct STRING_DELIMITERS *delms, const char *str)
+static void str2list(struct STRING_DELIMITERS *d, const char *str)
 {
+	tmplist.c = 0;
 
-	if (*str == 0) {		// Was an empty string passed.
-		tmplist.c = 0;
-		return;
-	}
-
-	if (tmplist.len == 0)	// If tmplist has not been initialized.
+	if ((str == NULL) || (*str == 0))
 		return;
 
-	tmplist.c = 0;			// Initialize necessary variables.
 
 	const char *head = NULL;
 	const char *tail = NULL;
@@ -353,128 +348,151 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 
 	while (*str != 0)
 	{
-		if (head == NULL)			// Trim white spaces if we're not reading a string.
-		{
-			if (*str == 0x20)
-			{
+		if (head == NULL) {								// Start reading of the string and trim spaces.
+			if (*str == 0x20) {
 				str++;
 				continue;
 			}
-			head = str;				// Start reading the string.
+			head = str;
 		}
 
-		for (x=0;x<delms->len;x++)
+		for (x=0;x<d->len;x++)							// Test for delimters.
 		{
-			if (delms->item[x].head == NULL)				// if this is a hole, skip.
+														/* If an empty space or if the first character of 
+														 * str != delimiter head, continue to the next 
+														 * delimiter 
+														 */
+			if ((d->item[x].head == NULL) || (*str != d->item[x].head[0]))
 				continue;
-			if (*str != delms->item[x].head[0])				// If the first characters match, continue.
-				continue;
-			if (strncmp(str, delms->item[x].head, delms->item[x].headlen) == 0)		//head is found.
+
+														/* Test if the string contains the delimiter head.
+														 */
+			if (strncmp(str, d->item[x].head, d->item[x].headlen) == 0)
 			{
-				if (delms->item[x].tail == NULL) {
-					tail = str;
-					while (*tail != 0) tail++;
-				} else
-					tail = strstr(str+delms->item[x].headlen, delms->item[x].tail);
-
-				if (tail != NULL)
+				if (d->item[x].tail == NULL)			// if tail == NULL read to end of string.
 				{
-					if (CAN_NEST(delms->item[x].flags)) {			//If delimiters can nest.
-						const char *nesthead = str;
-						const char *nesttail = tail;
-						while (1) {
-							nesthead = strstr(nesthead+delms->item[x].headlen, delms->item[x].head);
-							if (nesthead == NULL) {
-								tail = nesttail;
-								break;
-							} else if ( nesthead > nesttail ) {
-								tail = nesttail;
-								break;	
-							} else {
-								nesttail = strstr(nesttail+delms->item[x].taillen, delms->item[x].tail);
-								if (nesttail == NULL) {
-									if (nesthead != nesttail) {
-										tail = nesthead;
-									}
-									break;
-								}
-							}
-								
+					tail = strchr(str, '\0');
+				} else 
+					tail = strstr(str+d->item[x].headlen, d->item[x].tail); 
 
+				if (tail == NULL)						// if tail == NULL, read normal string. 
+					break;
 
+														/* If the delimiter can nest, read til
+														 * the end of the nests.
+														 */
+				if (CAN_NEST(d->item[x].flags)) 
+				{
+					const char *nesthead = str;
+					const char *nesttail = tail;
+					while(1) 
+					{
+						nesthead = strstr(nesthead+d->item[x].headlen, d->item[x].head);
+														// If head excedes tail, break.
+						if ((nesthead == NULL) || (nesthead > nesttail))
+						{
+							tail = nesttail;
+							break;
 						}
-					}
+						nesttail = strstr(nesttail+d->item[x].taillen, d->item[x].tail);
 
-					if (head + delms->item[x].headlen == tail) {	// If empty string in delimiter.
-						str = tail + delms->item[x].taillen;
-						tail = head;
-						break;
-					}
-					if (HAS_DELIMITER_WITH_STRING(delms->item[x].flags)) {	// Delimiter can be read
-																			// with string.
-						if (head < str) {
-							tail = tail + delms->item[x].taillen;
-							str = tail;
-						} else {
+															/* Broken nest so read as a normal string.
+															 * This will return with the broken delimiter
+															 * on the first string.
+															 */
+						if (nesttail == NULL)
+						{
 							tail = NULL;
-							continue;
+							break;
 						}
-						break;
 					}
 
-					if (head < str) {										   // Reading a normal string.
-						tail =str;
-					} else if (HAS_DISCARD_DELIMITERS(delms->item[x].flags)) { // Reading a discarded delimited string.
-						head = head + delms->item[x].headlen;
-						str = tail + delms->item[x].taillen;
-					} else if (HAS_DISCARD_STRING(delms->item[x].flags)) {     // Reading a comment block.
-						str = tail + delms->item[x].taillen;
-						head = NULL;
-						tail = NULL;
-					} else if (HAS_KEEP_DELIMITERS(delms->item[x].flags)) {	   // Keep delims. 
-						tail = tail + delms->item[x].taillen;
+				}
+				
+				if (tail == NULL)							// It's now a normal string.
+					break;
+
+//				if (head + d->item[x].headlen == tail) 		// Don't write empty string.
+				if (head == tail)
+				{
+					str = tail+1; //+ d->item[x].taillen;
+					tail = NULL;
+					head = NULL;
+					break;
+				}
+
+															/* If defined, a delimiter can be a part of
+															 * the string. So add that here.
+															 */
+				if (HAS_DELIMITER_WITH_STRING(d->item[x].flags))
+				{
+					if (head < str)
+					{
+						tail = tail + d->item[x].taillen;
 						str = tail;
+					} else {								// However, if it's not with a string, then
+						tail = NULL;						// skip it and start reading the next delimiter.
+						continue;
 					}
-
 					break;
 
 				}
-			}
-		}
 
-		if (tail == head) {						//if tail == head, ignore last read.
-			head = NULL;
-			tail = NULL;
-			continue;
-		}
-
-		if (tail == NULL) {						// If a normal string is being read.
-			str++;
-			if ((*str == 0x20) || (*str == 0))
-				tail = str;
-		}
-
-		
-
-		if ((tail != NULL) && (tail != head))   	// If tail was found, write to string.
-		{
-
-			if (tmplist.c >= tmplist.len)
-			{
-				int resize = resize_tmplist(8);
-				if (resize != 0) {
-					tmplist.c = 0;
-					return;
+				if (head < str)								// if head < str, the delimiter doesn't belong with
+				{											// the string.
+					tail = str;
+															/* Discard the delimiters */
+				} else if (HAS_DISCARD_DELIMITERS(d->item[x].flags))
+				{
+					head = head + d->item[x].headlen;
+					str = tail + d->item[x].taillen;
+															/* Discard the string. */
+				} else if (HAS_DISCARD_STRING(d->item[x].flags))
+				{
+					str = tail + d->item[x].taillen;
+					head = NULL;
+					tail = NULL;
+															/* Keep the delimiters */
+				} else if (HAS_KEEP_DELIMITERS(d->item[x].flags))
+				{
+					tail = tail + d->item[x].taillen;
+					str = tail;
 				}
+
+				break;
+				
 			}
+		}
 
-			tmplist.item[tmplist.c].head = head;
-			tmplist.item[tmplist.c].tail = tail;
-			tmplist.c++;
-			head = NULL;
-			tail = NULL;
+		if (head == tail)									// Don't write empty strings.
+			continue;
 
-		} 
+		if (tail == NULL)									// Check for a normal string,
+		{													// and increase str to next character.
+			str++;
+			if ((*str != 0x20) && (*str != 0))
+				continue;
+			tail = str;
+		}
+
+//		if (tail == NULL)									// If no tail was found, continue reading the string.
+//			continue;
+
+		if (tmplist.c >= tmplist.len)
+		{
+			int resize = resize_tmplist(8);
+			if (resize != 0) 
+			{
+				tmplist.c = 0;
+				return;
+			}
+		}
+
+		tmplist.item[tmplist.c].head = head;
+		tmplist.item[tmplist.c].tail = tail;
+		tmplist.c++;
+		head = NULL;
+		tail = NULL;
 	}
 
 }
