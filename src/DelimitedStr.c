@@ -127,13 +127,20 @@ static int write_delimiter(struct STRING_DELIMITERS *delms, int x, const char *h
 
 	delms->item[x].head = newstr;
 	delms->item[x].headlen = headlen;
-	delms->item[x].tail = delms->item[x].head+delms->item[x].headlen+1;
-	delms->item[x].taillen = taillen;
-	
-	if (strncmp(delms->item[x].head, delms->item[x].tail, delms->item[x].headlen) == 0)
+	if ( (tail == NULL) || (*tail == 0)) {
+		delms->item[x].tail = NULL;
+		delms->item[x].taillen = 0;
 		delms->item[x].flags = DELIMITER_NO_NEST | flags;
-	else
-		delms->item[x].flags = flags;
+	} else {
+		delms->item[x].tail = delms->item[x].head+delms->item[x].headlen+1;
+
+		delms->item[x].taillen = taillen;
+		
+		if (strncmp(delms->item[x].head, delms->item[x].tail, delms->item[x].headlen) == 0)
+			delms->item[x].flags = DELIMITER_NO_NEST | flags;
+		else
+			delms->item[x].flags = flags;
+	}
 
 	return(REDELIMLIST_OK);
 }
@@ -364,7 +371,12 @@ static void str2list(struct STRING_DELIMITERS *delms, const char *str)
 				continue;
 			if (strncmp(str, delms->item[x].head, delms->item[x].headlen) == 0)		//head is found.
 			{
-				tail = strstr(str+delms->item[x].headlen, delms->item[x].tail);
+				if (delms->item[x].tail == NULL) {
+					tail = str;
+					while (*tail != 0) tail++;
+				} else
+					tail = strstr(str+delms->item[x].headlen, delms->item[x].tail);
+
 				if (tail != NULL)
 				{
 					if (CAN_NEST(delms->item[x].flags)) {			//If delimiters can nest.
