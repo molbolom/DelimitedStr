@@ -77,9 +77,14 @@ static PyObject *DelimitedStr_remove_delimiter(PyObject *self, PyObject *pos)
 		PyErr_SetString(PyExc_TypeError, "remove_delimiter() requires an integer.");
 		return(NULL);
 	}
-	long x = PyLong_AsLong(pos);
+
+	Py_ssize_t x = PyLong_AsSsize_t(pos);
 	if ( (x == -1) && (PyErr_Occurred()) )
-		return(NULL);
+		return NULL;
+
+//	long x = PyLong_AsLong(pos);
+//	if ( (x == -1) && (PyErr_Occurred()) )
+//		return(NULL);
 
 	if ( (x < 0) || (x >=delms->len) ) {
 		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
@@ -172,9 +177,14 @@ static PyObject *DelimitedStr_get(PyObject *self, PyObject *a)
 		return(NULL);
 	}
 
-	long x = PyLong_AsLong(a);
-	if ((x == -1) && PyErr_Occurred())
-		return(NULL);
+	Py_ssize_t x = PyLong_AsSsize_t(a);
+	if ( (x == -1) && (PyErr_Occurred()) )
+		return NULL;
+
+//	long x = PyLong_AsLong(a);
+//	if ((x == -1) && PyErr_Occurred())
+//		return(NULL);
+
 	if ((x<0) || (x >= delms->len)) {
 		PyErr_SetString(PyExc_OverflowError, "Index out of range.");
 		return(NULL);
