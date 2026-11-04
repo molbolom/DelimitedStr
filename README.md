@@ -48,3 +48,7 @@ s = "this is a test"
 
 A = delm.split(s)
 ```
+
+How to install:
+
+    pip install git+https://github.com/molbolom/DelimitedStr
