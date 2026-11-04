@@ -50,5 +50,7 @@ A = delm.split(s)
 ```
 
 ### How to install:
+   
+Requires a c compiler and Python development headers.
 
     pip install git+https://github.com/molbolom/DelimitedStr
