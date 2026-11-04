@@ -1,0 +1,26 @@
+[project]
+name = "delimitedstr"
+version = "1.0.1"
+license = "MIT"
+license-files = ["LICENSE"]
+maintainers = [
+	{ name = "Charles Kauffman", email = "molbolom@gmail.com" }
+]
+keywords = ["string", "string delimiter", "delimiter", "delimited", "nested delimiters", "list"]
+
+
+description = "A string parser that will split strings into a list based on delimiters and their flags."
+readme = "README.md"
+requires-python = ">=3.14"
+classifiers = [
+	"Development Status :: 3 - Alpha",
+	"Intended Audience :: Developers",
+	"Topic :: Data Research :: Program Development",
+	"Programming language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/molbolom/DelimitedStr"
+Repository = "https://github.com/molbolom/DelimitedStr.git"
+Issues = "https://github.com/molbolom/DelimitedStr/issues"
+Changelog = "https://github.com/molbolom/DelimitedStr/CHANGELOG"
