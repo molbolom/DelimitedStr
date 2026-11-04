@@ -33,6 +33,7 @@ delm.add_delimiter("{", "}", DISCARD_DELIMITERS)
 delm.add_delimiter("[", "]", DELIMITER_WITH_STRING)
 delm.add_delimiter("[", "]", DISCARD_DELIMITERS)
 delm.add_delimiter("\"", "\"")         # Defaults to KEEP_DELIMITERS
+delm.add_delimiter("/*", "*/", DISCARD_STRING)
 delm.add_delimiter("'", "'")
 delm.add_delimiter("<", ">")
 delm.add_delimiter("(", ")")
@@ -44,27 +45,23 @@ delm.add_delimiter("{", "}", DISCARD_DELIMITERS)
 delm.add_delimiter("[", "]", DELIMITER_WITH_STRING)
 delm.add_delimiter("[", "]", DISCARD_DELIMITERS)
 delm.add_delimiter("\"", "\"")
+delm.add_delimiter("/*", "*/", DISCARD_STRING)
 delm.add_delimiter("'", "'")
 delm.add_delimiter("<", ">")
 delm.add_delimiter("(", ")")
 
-A = ["This is a string",
-     "This is[a delimited] string.",
-     "Testing 'if this reads' correctly [a,b,c,d]"]
-
-B = []
+A = ["This is a string without delimiters.",
+     "This is[here is a delimiter with a string] a test with two similar [delimited strings].",
+     "This string will show /*what happens when you use a comment block */ within a string"]
 
 
-B.append(delm.split(A[0]))
-B.append(delm.split(A[1]))
-B.append(delm.split(A[2]))
+for s in A:
+    c = delm.split(s)
 
-
-print("----------------------------------------------------------------------------------------")
-print(B[0])
-print(B[1])
-print(B[0])
-print("----------------------------------------------------------------------------------------")
+    print(s)
+    for item in c:
+        print(f"{item} | ", end = "")
+    print("\n")
 
 
 
