@@ -36,6 +36,7 @@ delm.add("/*", "*/", DISCARD_STRING)
 delm.add("'", "'")
 delm.add("<", ">")
 delm.add("(", ")")
+delm.add("#", "")
 """)
 
 delm = DelimitedStr()
@@ -48,11 +49,13 @@ delm.add("/*", "*/", DISCARD_STRING)
 delm.add("'", "'")
 delm.add("<", ">")
 delm.add("(", ")")
+delm.add("#", "")
 
 A = ["This is a string without delimiters.",
      "This is[here is a delimiter with a string] a test with two similar [delimited strings].",
      "This string will show /*what happens when you use a comment block */ within a string",
-     "Another{string with} different \"types of\" delimiters. abc[def] [geh]"]
+     "Another{string with} different \"types of\" delimiters. abc[def] [geh]",
+     "And now a string to show # what happens if the tail is null."]
 
 
 for s in A:

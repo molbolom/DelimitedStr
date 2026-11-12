@@ -20,12 +20,18 @@
 #define DELIMITEDSTR_ADD_DELIMITER_DOC \
 	"add(head, tail, flags = 0)\n--\n\n" \
 	"                                    adds a delimiter of head/tail to the list\n" \
-	"                                    with flags.\n"
+	"                                    with flags.\n" \
+	"                                    When tail is an empty string, then the\n" \
+	"									 entire string from head to the end of the\n" \
+	"                                    string is returned as one list item.\n"
 
 #define DELIMITEDSTR_SET_DELIMITER_DOC \
 	"set(index, head, tail, flags = 0)\n--\n\n" \
 	"                                    Sets the delimiter of head/tail to the\n" \
-	"                                    list at index within the delimiters.\n"
+	"                                    list at index within the delimiters.\n" \
+	"                                    When tail is an empty string, then the\n" \
+	"									 entire string from head to the end of the\n" \
+	"                                    string is returned as one list item.\n"
 
 #define DELIMITEDSTR_REMOVE_DELIMITER_DOC \
 	"remove(index)\n--\n\n" \
