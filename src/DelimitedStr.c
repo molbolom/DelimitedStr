@@ -466,6 +466,9 @@ static void str2list(struct STRING_DELIMITERS *d, const char *str)
 				{
 					tail = tail + d->item[x].taillen;
 					str = tail;
+				} else if (HAS_DISCARD_TAIL(d->item[x].flags))
+				{
+					str = tail +d->item[x].taillen;
 				}
 
 				break;
@@ -573,6 +576,7 @@ PyMODINIT_FUNC PyInit_delimitedstr(void)
 	PyModule_AddIntConstant(m, "KEEP_DELIMITERS", KEEP_DELIMITERS);
 	PyModule_AddIntConstant(m, "DISCARD_DELIMITERS", DISCARD_DELIMITERS);
 	PyModule_AddIntConstant(m, "DISCARD_STRING", DISCARD_STRING);
+	PyModule_AddIntConstant(m, "DISCARD_TAIL", DISCARD_TAIL);
 	PyModule_AddIntConstant(m, "DELIMITER_WITH_STRING", DELIMITER_WITH_STRING);
 
 	Py_INCREF(&DelimitedStrType);

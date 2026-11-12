@@ -10,10 +10,11 @@
 
 // 										User defined flags. 
 
-#define KEEP_DELIMITERS            0
-#define DISCARD_DELIMITERS         1
-#define DISCARD_STRING             2
-#define DELIMITER_WITH_STRING      4
+#define KEEP_DELIMITERS               0
+#define DISCARD_DELIMITERS            1
+#define DISCARD_STRING                2
+#define DISCARD_TAIL			      4
+#define DELIMITER_WITH_STRING      0x10 
 
 // 										Initialization flags.
 
@@ -21,6 +22,7 @@
 
 #define HAS_DISCARD_DELIMITERS(x)    ((x) & DISCARD_DELIMITERS)
 #define HAS_DISCARD_STRING(x)        ((x) & DISCARD_STRING)
+#define HAS_DISCARD_TAIL(x)          ((x) & DISCARD_TAIL)
 #define HAS_DELIMITER_WITH_STRING(x) ((x) & DELIMITER_WITH_STRING)
 #define HAS_KEEP_DELIMITERS(x)        (!((x) & 0xff))
 

@@ -9,3 +9,4 @@ Version 1.0.2 (11-12-2026)
 - .add_delimiter() => .add()
 - .remove_delimiter() => .remove()
 - .set_delimiter() => .set()
+- Added the ability to discard the tail with DISCARD_TAIL

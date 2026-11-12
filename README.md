@@ -44,7 +44,8 @@ delm.add("\"", "\"")                       # flags default to 0.
 
 delm.add("#", "")                          # If tail is null, then the entire string is returned as
                                            # one item to the end of the string.
-
+delm.add("c:", ";", DISCARD_TAIL)          # Will return the string between "c:this string;" and not
+                                           # keep the ';' character at the end of the string.
 
 # Input a string here.
 s = "this is a test"

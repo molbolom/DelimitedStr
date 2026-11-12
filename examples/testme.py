@@ -1,7 +1,7 @@
 
 
 from delimitedstr import DelimitedStr
-from delimitedstr import DISCARD_DELIMITERS, DISCARD_STRING, DELIMITER_WITH_STRING
+from delimitedstr import DISCARD_DELIMITERS, DISCARD_STRING, DELIMITER_WITH_STRING,DISCARD_TAIL
 
 print("DelimitedStr is a library for parsing strings into lists based on")
 print("the delimiters given to the program.")
@@ -46,6 +46,7 @@ delm.add("[", "]", DELIMITER_WITH_STRING)
 delm.add("[", "]", DISCARD_DELIMITERS)
 delm.add("\"", "\"")
 delm.add("/*", "*/", DISCARD_STRING)
+delm.add("s.", ";", DISCARD_TAIL)
 delm.add("'", "'")
 delm.add("<", ">")
 delm.add("(", ")")
@@ -55,7 +56,7 @@ A = ["This is a string without delimiters.",
      "This is[here is a delimiter with a string] a test with two similar [delimited strings].",
      "This string will show /*what happens when you use a comment block */ within a string",
      "Another{string with} different \"types of\" delimiters. abc[def] [geh]",
-     "And now a string to show # what happens if the tail is null."]
+     "And now a s.string to; show # what happens if the tail is null."]
 
 
 for s in A:
