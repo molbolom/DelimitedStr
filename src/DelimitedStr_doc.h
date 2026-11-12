@@ -7,8 +7,8 @@
 	"      different methods of parsing strings depending on different\n" \
 	"      rules.\n\n" \
 	"      Import with: from delimterstr import KEEP_DELIMITERS, ...\n\n"\
-	"               DelimitedStr.add_delimiter('[',']',DELIMITER_WITH_STRING)\n" \
-	"               DelimitedStr.add_delimiter('[',']',DISCARD_DELIMITERS)\n\n" \
+	"               DelimitedStr.add('[',']',DELIMITER_WITH_STRING)\n" \
+	"               DelimitedStr.add('[',']',DISCARD_DELIMITERS)\n\n" \
 	"                  If DELIMTIER_WITH_STRING precedes DISCARD_DELIMITERS\n" \
 	"               then both can be used so that they both will split differently\n" \
 	"               'abc[def] abc [def]' will become [ 'abc[def]', 'abc', 'def' ]\n"
@@ -18,17 +18,17 @@
 	"a list.\n" 
 
 #define DELIMITEDSTR_ADD_DELIMITER_DOC \
-	"add_delimiter(head, tail, flags = 0)\n--\n\n" \
+	"add(head, tail, flags = 0)\n--\n\n" \
 	"                                    adds a delimiter of head/tail to the list\n" \
 	"                                    with flags.\n"
 
 #define DELIMITEDSTR_SET_DELIMITER_DOC \
-	"set_delimiter(index, head, tail, flags = 0)\n--\n\n" \
+	"set(index, head, tail, flags = 0)\n--\n\n" \
 	"                                    Sets the delimiter of head/tail to the\n" \
 	"                                    list at index within the delimiters.\n"
 
 #define DELIMITEDSTR_REMOVE_DELIMITER_DOC \
-	"remove_delimiter(index)\n--\n\n" \
+	"remove(index)\n--\n\n" \
 	"                                    Removes the delimiter at index.\n"
 
 #define DELIMITEDSTR_SPLIT_DOC \

@@ -3,3 +3,9 @@ Changelog for DelimitedStr
 
 Version 1.0.1 (11-02-2026)
 - Written, tested, and uploaded to git.
+
+Version 1.0.2 (11-12-2026)
+- Changed the names of the methods.
+- .add_delimiter() => .add()
+- .remove_delimiter() => .remove()
+- .set_delimiter() => .set()

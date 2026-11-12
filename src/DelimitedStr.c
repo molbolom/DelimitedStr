@@ -422,10 +422,9 @@ static void str2list(struct STRING_DELIMITERS *d, const char *str)
 				if (tail == NULL)							// It's now a normal string.
 					break;
 
-//				if (head + d->item[x].headlen == tail) 		// Don't write empty string.
 				if (head == tail)
 				{
-					str = tail+1; //+ d->item[x].taillen;
+					str = tail+1;
 					tail = NULL;
 					head = NULL;
 					break;
@@ -485,9 +484,6 @@ static void str2list(struct STRING_DELIMITERS *d, const char *str)
 			tail = str;
 		}
 
-//		if (tail == NULL)									// If no tail was found, continue reading the string.
-//			continue;
-
 		if (tmplist.c >= tmplist.len)
 		{
 			int resize = resize_tmplist(8);
@@ -535,11 +531,11 @@ static void clean_str2list(void)
 }
 
 static PyMethodDef DelimitedStr_methods[] = {
-	{"add_delimiter", DelimitedStr_add_delimiter, METH_VARARGS, DELIMITEDSTR_ADD_DELIMITER_DOC},
-	{"set_delimiter", DelimitedStr_set_delimiter, METH_VARARGS, DELIMITEDSTR_SET_DELIMITER_DOC},
+	{"add", DelimitedStr_add_delimiter, METH_VARARGS, DELIMITEDSTR_ADD_DELIMITER_DOC},
+	{"set", DelimitedStr_set_delimiter, METH_VARARGS, DELIMITEDSTR_SET_DELIMITER_DOC},
 	{"get",           DelimitedStr_get, METH_O, DELIMITEDSTR_GET_DOC},
 	{"len",           DelimitedStr_len, METH_NOARGS, DELIMITEDSTR_LEN_DOC},
-	{"remove_delimiter", DelimitedStr_remove_delimiter, METH_O, DELIMITEDSTR_REMOVE_DELIMITER_DOC},
+	{"remove", DelimitedStr_remove_delimiter, METH_O, DELIMITEDSTR_REMOVE_DELIMITER_DOC},
 	{"split", DelimitedStr_split, METH_O, DELIMITEDSTR_SPLIT_DOC},
 	{ NULL, NULL, 0, NULL }
 };

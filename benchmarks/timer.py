@@ -24,17 +24,16 @@ delimiters = [ ["{}", DISCARD_DELIMITERS],
                ["''",   0 ],
                ["<>", DISCARD_DELIMITERS],
                ["/**/", DISCARD_STRING],
-               ["[]", DELIMITER_WITH_STRING],
-               ["[]", DISCARD_DELIMITERS],
+               ["[]", DELIMITER_WITH_STRING | DISCARD_DELIMITERS],
                ["##", DISCARD_DELIMITERS]]
 
 
 for d in delimiters:
     c = len(d[0])//2
-    delm.add_delimiter(d[0][0:c], d[0][c:], d[1])
+    delm.add(d[0][0:c], d[0][c:], d[1])
 
 
-s = "'abc' [def] xyc[alpha, beta, [0,1,2,3,4]] Yabba Dabba Do /*Brother bear*/" * string_expansion
+s = "'abc' [def] xyc [alpha, beta, [0,1,2,3,4]] Yabba Dabba Do /*Brother bear*/" * string_expansion
 
 delm.split(s)
 

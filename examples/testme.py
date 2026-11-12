@@ -16,9 +16,9 @@ print("                                             it is part of the word.")
 print("                                             If a delimiter is added after this one,")
 print("                                             then that one takes its flag.")
 print("Methods:")
-print("   .add_delimiter(head, tail, flags)")
-print("   .set_delimiter(index, head, tail, flags)  Sets a delimiter to index within the delimiter list.") 
-print("   .remove_delimiter(index)                  Removes the delimiter at index.")
+print("   .add(head, tail, flags)")
+print("   .set(index, head, tail, flags)  Sets a delimiter to index within the delimiter list.") 
+print("   .remove(index)                  Removes the delimiter at index.")
 print("   .len()                                    Length of the delimter list.")
 print("   .get(index)                               Return a list object representing the delimiter at")
 print("                                             index.")
@@ -29,30 +29,30 @@ print("                                             separated by a space or a de
 print("""
 delm = DelimitedStr()
 
-delm.add_delimiter("{", "}", DISCARD_DELIMITERS)
-delm.add_delimiter("[", "]", DELIMITER_WITH_STRING)
-delm.add_delimiter("[", "]", DISCARD_DELIMITERS)
-delm.add_delimiter("\"", "\"")         # Defaults to KEEP_DELIMITERS
-delm.add_delimiter("/*", "*/", DISCARD_STRING)
-delm.add_delimiter("'", "'")
-delm.add_delimiter("<", ">")
-delm.add_delimiter("(", ")")
+delm.add("{", "}", DISCARD_DELIMITERS)
+delm.add("[", "]", DELIMITER_WITH_STRING | DISCARD_DELIMITERS)
+delm.add("\"", "\"")         # Defaults to KEEP_DELIMITERS
+delm.add("/*", "*/", DISCARD_STRING)
+delm.add("'", "'")
+delm.add("<", ">")
+delm.add("(", ")")
 """)
 
 delm = DelimitedStr()
 
-delm.add_delimiter("{", "}", DISCARD_DELIMITERS)
-delm.add_delimiter("[", "]", DELIMITER_WITH_STRING)
-delm.add_delimiter("[", "]", DISCARD_DELIMITERS)
-delm.add_delimiter("\"", "\"")
-delm.add_delimiter("/*", "*/", DISCARD_STRING)
-delm.add_delimiter("'", "'")
-delm.add_delimiter("<", ">")
-delm.add_delimiter("(", ")")
+delm.add("{", "}", DISCARD_DELIMITERS)
+delm.add("[", "]", DELIMITER_WITH_STRING)
+delm.add("[", "]", DISCARD_DELIMITERS)
+delm.add("\"", "\"")
+delm.add("/*", "*/", DISCARD_STRING)
+delm.add("'", "'")
+delm.add("<", ">")
+delm.add("(", ")")
 
 A = ["This is a string without delimiters.",
      "This is[here is a delimiter with a string] a test with two similar [delimited strings].",
-     "This string will show /*what happens when you use a comment block */ within a string"]
+     "This string will show /*what happens when you use a comment block */ within a string",
+     "Another{string with} different \"types of\" delimiters. abc[def] [geh]"]
 
 
 for s in A:
